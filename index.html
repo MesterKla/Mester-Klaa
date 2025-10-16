@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>عجلة الحظ</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0 0 50px 0; /* مسافة سفلية للملاحظة */
+      font-family: 'Cairo', sans-serif;
+      text-align: center;
+      color: #333; /* لون نص أساسي يتناسب مع الخلفية */
+
+      /* 💡 الخلفية الأساسية (بدون النصوص المكررة هنا) */
+      background: linear-gradient(135deg, #e0f2f7 0%, #c1e4f2 100%); 
+      background-attachment: fixed;
+    }
+
+    /* 💡 الطبقة الجديدة لاسم "Mester Kla" المتكرر في الخلفية */
+    .background-text-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden; /* لإخفاء أي جزء من النص يخرج عن الحدود */
+      z-index: -2; /* الأبعد في الخلفية */
+      pointer-events: none; /* لتجنب التفاعل مع النص */
+      user-select: none; /* لمنع تحديد النص */
+      opacity: 0.7; /* شفافية عامة للطبقة */
+    }
+
+    .background-text-overlay span {
+      position: absolute;
+      font-weight: bold;
+      white-space: nowrap; /* لمنع تقسيم الكلمة Mester Kla */
+      transform-origin: center center; /* نقطة الدوران */
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.03); /* ظل خفيف */
+    }
+
+    /* مثال على تنسيقات لعدة نسخ من اسمك Mester Kla */
+    .background-text-overlay span:nth-child(1) {
+      top: 10%; left: 5%;
+      font-size: 8vw; color: rgba(0, 120, 255, 0.04);
+      transform: rotate(-10deg);
+    }
+    .background-text-overlay span:nth-child(2) {
+      top: 30%; right: 10%;
+      font-size: 10vw; color: rgba(255, 165, 0, 0.03);
+      transform: rotate(15deg);
+    }
+    .background-text-overlay span:nth-child(3) {
+      bottom: 20%; left: 15%;
+      font-size: 9vw; color: rgba(76, 175, 80, 0.04);
+      transform: rotate(5deg);
+    }
+    .background-text-overlay span:nth-child(4) {
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-25deg);
+      font-size: 12vw; color: rgba(0, 0, 0, 0.03);
+    }
+    .background-text-overlay span:nth-child(5) {
+      top: 80%; right: 20%;
+      font-size: 7vw; color: rgba(0, 120, 255, 0.03);
+      transform: rotate(20deg);
+    }
+     .background-text-overlay span:nth-child(6) {
+      top: 60%; left: 25%;
+      font-size: 9vw; color: rgba(255, 165, 0, 0.02);
+      transform: rotate(-10deg);
+    }
+    .background-text-overlay span:nth-child(7) {
+      bottom: 5%; left: 40%;
+      font-size: 6vw; color: rgba(76, 175, 80, 0.03);
+      transform: rotate(8deg);
+    }
+    .background-text-overlay span:nth-child(8) {
+      top: 20%; left: 70%;
+      font-size: 11vw; color: rgba(0, 0, 0, 0.02);
+      transform: rotate(-5deg);
+    }
+    .background-text-overlay span:nth-child(9) {
+      bottom: 15%; right: 50%;
+      transform: translate(50%, -50%) rotate(22deg);
+      font-size: 10vw; color: rgba(0, 120, 255, 0.02);
+    }
+    .background-text-overlay span:nth-child(10) {
+      top: 40%; right: 30%;
+      font-size: 7vw; color: rgba(255, 165, 0, 0.02);
+      transform: rotate(-18deg);
+    }
+
+
+    h1 {
+      color: #0078ff;
+      font-size: 24px;
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+    .day {
+      display: block;
+      margin: 5px 0;
+      font-weight: bold;
+    }
+    .day1 { color: #ff3b3b; }
+    .day2 { color: #ff9f00; }
+    .day3 { color: #4caf50; }
+
+    .wheel-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 40px auto;
+      background-color: rgba(255, 255, 255, 0.9); /* خلفية بيضاء شفافة للعجلة */
+      border-radius: 50%;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2); /* ظل للعجلة */
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+
+    /* المثلث الصغير الصحيح الاتجاه */
+    .pointer {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 25px solid red; 
+      z-index: 10;
+    }
+
+    /* الدائرة الذهبية في منتصف العجلة */
+    .center-dot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 30px;
+      background: radial-gradient(circle, gold 0%, goldenrod 90%);
+      border-radius: 50%;
+      z-index: 11;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
+
+    input {
+      margin-top: 30px;
+      padding: 12px;
+      font-size: 16px;
+      width: 220px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.9); /* خلفية شفافة للحقل */
+    }
+    button {
+      margin-top: 15px;
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      border-radius: 12px;
+      background-color: #0078ff;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #005fcc;
+    }
+
+    /* تعديل موضع النافذة المنبثقة */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      z-index: 100;
+      width: 280px;
+    }
+
+    /* التعديل لتصحيح مكان الـ × - الزاوية العلوية اليمنى */
+    .popup button.close {
+      position: absolute;
+      top: 5px; 
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 28px; 
+      cursor: pointer;
+      color: #555;
+      padding: 0; 
+      line-height: 1; 
+    }
+
+    .loading {
+      display: none;
+      margin-top: 20px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #0078ff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* الملاحظة ملتصقة بأسفل الشاشة */
+    .note {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      background-color: #f8f8f8;
+      padding: 5px 0;
+      color: #777;
+      font-size: 14px;
+      z-index: 99;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="background-text-overlay">
+    <span>Mester Kla</span>
+    <span>Mester Kla</span>
+    <span>Mester Kla</span>
+    <span>Mester Kla</span>
+    <span>Mester Kla</span>
+    <span>Mester Kla</span>
+    <span>Mester Kla</span>
+    <span>Mester Kla</span>
+    <span>Mester Kla</span>
+    <span>Mester Kla</span>
+    </div>
+
+  <h1>
+    <span class="day day1">اليوم الأول: نسبة الفوز 30%</span>
+    <span class="day day2">اليوم الثاني: نسبة الفوز 60%</span>
+    <span class="day day3">اليوم الثالث: نسبة الفوز 100%</span>
+  </h1>
+
+  <div class="wheel-container">
+    <div class="pointer"></div>
+    <canvas id="wheelCanvas" width="300" height="300"></canvas>
+    <div class="center-dot"></div>
+  </div>
+
+  <input type="number" id="playerId" placeholder="" />
+  <br>
+  <button id="spinBtn">ادخل معرف حسابك</button>
+  <div class="loading" id="loading"></div>
+
+  <div id="popup" class="popup">
+    <button class="close" onclick="closePopup()">×</button>
+    <p id="popupText">للأسف! لكن لا تقلق عد غداً بنسبة فوز أعلى🎁</p>
+  </div>
+
+  <p class="note"><small>ملاحظة: يمكنك اللف مرة واحدة كل 24 ساعة.</small></p>
+
+  <script>
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const sections = ["☹️", "100💎", "☹️", "100💎", "☹️", "100💎"];
+    const colors = ["#FFEB3B", "#4CAF50", "#F44336", "#03A9F4", "#9C27B0", "#FF9800"];
+    let spinning = false;
+
+    function drawWheel() {
+      const arc = Math.PI * 2 / sections.length;
+      for (let i = 0; i < sections.length; i++) {
+        const angle = i * arc;
+        ctx.beginPath();
+        ctx.fillStyle = colors[i];
+        ctx.moveTo(150, 150);
+        ctx.arc(150, 150, 150, angle, angle + arc);
+        ctx.fill();
+        ctx.save();
+        ctx.translate(150, 150);
+        ctx.rotate(angle + arc / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'black';
+        ctx.font = '20px Cairo';
+        ctx.fillText(sections[i], 130, 8);
+        ctx.restore();
+      }
+    }
+    drawWheel();
+
+    const spinBtn = document.getElementById('spinBtn');
+    const input = document.getElementById('playerId');
+    const popup = document.getElementById('popup');
+    const loading = document.getElementById('loading');
+    let canSpin = true;
+    
+    const nearWinEdges = [0, 120, 240];
+
+    spinBtn.onclick = () => {
+      if (spinBtn.textContent === 'ادخل معرف حسابك') {
+        const id = input.value.trim();
+        if (id.length < 9 || id.length > 12) {
+          alert('معرف لاعب غير صحيح! حاول مرة أخرى');
+          return;
+        }
+        spinBtn.style.display = 'none';
+        loading.style.display = 'block';
+        setTimeout(() => {
+          loading.style.display = 'none';
+          spinBtn.textContent = 'لف';
+          spinBtn.style.display = 'inline-block';
+          input.disabled = true; 
+        }, 2000);
+        return;
+      }
+
+      if (!canSpin) {
+        alert('عد بعد 24 ساعة');
+        return;
+      }
+
+      if (spinning) return;
+      spinning = true;
+
+      const targetEdge = nearWinEdges[Math.floor(Math.random() * nearWinEdges.length)];
+      const nearMissOffset = 2 + Math.random() * 8; 
+      const finalStopAngle = targetEdge + nearMissOffset;
+
+      const rotationCycles = 15 * 360; 
+      const totalRotation = rotationCycles + finalStopAngle;
+
+      canvas.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1.0)';
+      canvas.style.transform = `rotate(${totalRotation}deg)`;
+
+      setTimeout(() => {
+        spinning = false;
+        showPopup();
+        canSpin = false;
+      }, 4000);
+      
+      setTimeout(() => {
+          canvas.style.transition = 'none';
+          const remainingAngle = totalRotation % 360; 
+          canvas.style.transform = `rotate(${remainingAngle}deg)`;
+      }, 4100); 
+    };
+
+    function showPopup() {
+      popup.style.display = 'block';
+    }
+
+    function closePopup() {
+      popup.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
